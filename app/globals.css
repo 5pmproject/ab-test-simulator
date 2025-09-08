@@ -24,3 +24,8 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
+
+/* Enforce black text for form controls */
+select, input, option {
+  color: #000000;
+}

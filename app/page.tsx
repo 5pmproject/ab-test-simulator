@@ -662,7 +662,7 @@ export default function Home() {
                   id="category-select"
                   value={selectedCategory}
                   onChange={(e) => { setSelectedCategory(e.target.value); setSelectedTest(''); }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                 >
                   <option value="">카테고리 선택...</option>
                   {Object.entries(testCategories).map(([key, cat]) => (
@@ -680,7 +680,7 @@ export default function Home() {
                   value={selectedTest}
                   onChange={(e) => setSelectedTest(e.target.value)}
                   disabled={!selectedCategory}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 text-black"
                 >
                   <option value="">테스트 선택...</option>
                   {selectedCategory && Object.entries(testCategories[selectedCategory].tests).map(([key, t]) => (
@@ -702,7 +702,7 @@ export default function Home() {
                   id="audience-select"
                   value={targetAudience}
                   onChange={(e) => setTargetAudience(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                 >
                   {Object.entries(customerSegments).map(([key, segment]) => (
                     <option key={key} value={key}>{segment.name}</option>
@@ -738,7 +738,7 @@ export default function Home() {
                   type="number"
                   value={currentVisitors}
                   onChange={(e) => setCurrentVisitors(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                   min={100}
                   max={100000}
                 />
@@ -766,7 +766,7 @@ export default function Home() {
                       type="number"
                       value={seed}
                       onChange={(e) => setSeed(parseInt(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     />
                   </div>
                 )}
