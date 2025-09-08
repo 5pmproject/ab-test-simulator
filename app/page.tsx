@@ -119,11 +119,7 @@ const welchTTestConfidence = (pA: number, pB: number, nA: number, nB: number) =>
   const se = Math.sqrt(varA + varB);
   if (se === 0) return 50;
   const t = Math.abs((pA - pB) / se);
-  // Welch-Satterthwaite 자유도
-  const numerator = (varA + varB) * (varA + varB);
-  const denom = (varA * varA) / Math.max(1, nA - 1) + (varB * varB) / Math.max(1, nB - 1);
-  const df = denom > 0 ? Math.max(1, numerator / denom) : Math.max(1, nA + nB - 2);
-  // df가 충분히 크면 정규 근사 사용
+  // 정규 근사 사용 (df 근사 생략)
   const z = t; // 근사
   // 정규분포 양측 p-value 근사
   const normalCdf = (x: number) => 0.5 * (1 + erfApprox(x / Math.SQRT2));
@@ -465,24 +461,7 @@ const customerSegments: Record<string, Segment> = {
   },
 };
 
-const historicalTests = [
-    {
-      company: "국내 대형 쇼핑몰 A",
-      test: "빠른배송 vs 할인 강조",
-      winner: "빠른배송",
-      lift: "+18%",
-      duration: "14일",
-      traffic: "50만 세션"
-    },
-    {
-      company: "패션 쇼핑몰 C", 
-      test: "지금 구매 vs 할인가로 구매",
-      winner: "할인가로 구매",
-      lift: "+24%",
-      duration: "10일",
-      traffic: "30만 세션"
-    }
-  ];
+// 실제 기업 사례는 UI 패널로 직접 렌더링하므로 상수 배열은 제거
 
 // 추천사항 생성 (모듈 스코프)
 const generateRecommendation = (
@@ -639,7 +618,7 @@ export default function Home() {
 
       setIsRunning(false);
     }, 2000);
-  }, [selectedTest, targetAudience, trafficSplit, currentVisitors, useSeed, seed]);
+  }, [selectedCategory, selectedTest, targetAudience, trafficSplit, currentVisitors, useSeed, seed]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
