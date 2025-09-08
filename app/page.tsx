@@ -648,7 +648,7 @@ export default function Home() {
           {/* 설정 패널 */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <h2 className="text-xl font-semibold mb-4 flex items-center text-black">
                 <Target className="w-5 h-5 mr-2 text-blue-600" />
                 테스트 설정
               </h2>
@@ -802,7 +802,7 @@ export default function Home() {
           <div className="lg:col-span-2">
             {selectedCategory && selectedTest && (
               <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <h3 className="text-lg font-semibold mb-4">📋 테스트 개요</h3>
+                <h3 className="text-lg font-semibold mb-4 text-black">📋 테스트 개요</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-blue-50 rounded-lg">
                     <h4 className="font-medium text-blue-900 mb-2">🅰️ 변형안 A</h4>
@@ -822,7 +822,7 @@ export default function Home() {
               <div className="space-y-6">
                 {/* 핵심 결과 */}
                 <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center text-black">
                     <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
                     테스트 결과
                   </h3>
