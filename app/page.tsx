@@ -1,18 +1,56 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Play, BarChart3, Users, TrendingUp, Target } from 'lucide-react';
+import React, { useCallback, useState } from 'react';
+import { Play, BarChart3, TrendingUp, Target } from 'lucide-react';
 
-export default function Home() {
-  const [selectedTest, setSelectedTest] = useState('');
-  const [targetAudience, setTargetAudience] = useState('mixed');
-  const [trafficSplit, setTrafficSplit] = useState(50);
-  const [currentVisitors, setCurrentVisitors] = useState(1000);
-  const [results, setResults] = useState<any>(null);
-  const [isRunning, setIsRunning] = useState(false);
+// 타입 정의
+type Variant = {
+  name: string;
+  description: string;
+  visual: string;
+  appeal_type: 'convenience' | 'price' | 'urgency' | 'speed';
+};
 
-  // 사전 정의된 A/B 테스트 시나리오들
-  const abTestScenarios = {
+type Scenario = {
+  name: string;
+  description: string;
+  variants: { A: Variant; B: Variant };
+};
+
+type Segment = {
+  name: string;
+  price_sensitivity: number;
+  convenience_preference: number;
+  urgency_response: number;
+  speed_preference: number;
+  research_basis: string;
+};
+
+type VariantResult = {
+  name: string;
+  visitors: number;
+  conversions: number;
+  conversionRate: number;
+  revenue: number;
+};
+
+type RecommendationData = {
+  recommendation: string;
+  researchSupport?: string;
+};
+
+type SimulationResult = {
+  variantA: VariantResult;
+  variantB: VariantResult;
+  winner: 'A' | 'B';
+  improvement: number;
+  confidence: number;
+  revenueLift: number;
+  recommendationData: RecommendationData;
+};
+
+// 사전 정의된 A/B 테스트 시나리오들 (모듈 스코프로 이동)
+const abTestScenarios: Record<string, Scenario> = {
     homepage_primary_message: {
       name: "홈화면 메인 메시지",
       description: "홈화면 상단에 어떤 메시지를 강조할지",
@@ -87,8 +125,8 @@ export default function Home() {
     }
   };
 
-  // 고객 세그먼트별 특성
-  const customerSegments = {
+// 고객 세그먼트별 특성 (모듈 스코프)
+const customerSegments: Record<string, Segment> = {
     value_seeker: {
       name: "가성비 추구층 (20대-30대 초반)",
       price_sensitivity: 0.45,
@@ -123,7 +161,7 @@ export default function Home() {
     }
   };
 
-  const historicalTests = [
+const historicalTests = [
     {
       company: "국내 대형 쇼핑몰 A",
       test: "빠른배송 vs 할인 강조",
@@ -142,8 +180,15 @@ export default function Home() {
     }
   ];
 
-  // 추천사항 생성
-  const generateRecommendation = (effectA: number, effectB: number, confidence: number, variantA: any, variantB: any, segment: string) => {
+// 추천사항 생성 (모듈 스코프)
+const generateRecommendation = (
+  effectA: number,
+  effectB: number,
+  confidence: number,
+  variantA: Variant,
+  variantB: Variant,
+  segment: string
+) => {
     const winner = effectB > effectA ? variantB : variantA;
     const improvement = effectA > 0 ? Math.abs(((effectB - effectA) / effectA) * 100) : 0;
     
@@ -177,12 +222,24 @@ export default function Home() {
     return { recommendation, researchSupport };
   };
 
+export default function Home() {
+  const [selectedTest, setSelectedTest] = useState('');
+  const [targetAudience, setTargetAudience] = useState('mixed');
+  const [trafficSplit, setTrafficSplit] = useState(50);
+  const [currentVisitors, setCurrentVisitors] = useState(1000);
+  const [results, setResults] = useState<SimulationResult | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [useSeed, setUseSeed] = useState(false);
+  const [seed, setSeed] = useState(42);
+
   // A/B 테스트 시뮬레이션
-  const simulateABTest = () => {
+  const simulateABTest = useCallback(() => {
     if (!selectedTest) {
-      alert('테스트를 선택해주세요');
+      setError('테스트를 선택해주세요');
       return;
     }
+    setError(null);
 
     setIsRunning(true);
 
@@ -192,6 +249,15 @@ export default function Home() {
       
       const variantA = scenario.variants.A;
       const variantB = scenario.variants.B;
+      
+      // 시드 기반 PRNG (xorshift32)
+      let prngState = seed >>> 0;
+      const prng = () => {
+        prngState ^= prngState << 13;
+        prngState ^= prngState >>> 17;
+        prngState ^= prngState << 5;
+        return (prngState >>> 0) / 4294967296;
+      };
       
       // 기본 전환율
       const baseConversionRate = 0.025;
@@ -211,8 +277,10 @@ export default function Home() {
       if (variantB.appeal_type === 'speed') effectB += segment.speed_preference * 0.028;
 
       // 노이즈 추가
-      effectA += (Math.random() - 0.5) * 0.005;
-      effectB += (Math.random() - 0.5) * 0.005;
+      const randA = useSeed ? prng() : Math.random();
+      const randB = useSeed ? prng() : Math.random();
+      effectA += (randA - 0.5) * 0.005;
+      effectB += (randB - 0.5) * 0.005;
 
       // 방문자 분할
       const visitorsA = Math.floor(currentVisitors * (trafficSplit / 100));
@@ -222,13 +290,13 @@ export default function Home() {
       const conversionsA = Math.floor(visitorsA * effectA);
       const conversionsB = Math.floor(visitorsB * effectB);
 
-      // 통계적 유의성 계산
-      const pooledRate = (conversionsA + conversionsB) / (visitorsA + visitorsB);
-      const seA = Math.sqrt(pooledRate * (1 - pooledRate) / visitorsA);
-      const seB = Math.sqrt(pooledRate * (1 - pooledRate) / visitorsB);
-      const seDiff = Math.sqrt(seA * seA + seB * seB);
-      const zScore = Math.abs((effectA - effectB) / seDiff);
-      const confidence = zScore > 1.96 ? 95 : zScore > 1.645 ? 90 : Math.max(50, 50 + zScore * 20);
+      // 통계적 유의성 계산 (표본 비율 기반)
+      const pA = visitorsA > 0 ? conversionsA / visitorsA : 0;
+      const pB = visitorsB > 0 ? conversionsB / visitorsB : 0;
+      const pooled = (conversionsA + conversionsB) / Math.max(1, visitorsA + visitorsB);
+      const se = Math.sqrt(pooled * (1 - pooled) * (1 / Math.max(1, visitorsA) + 1 / Math.max(1, visitorsB)));
+      const zScore = se > 0 ? Math.abs((pA - pB) / se) : 0;
+      const confidence = zScore >= 1.96 ? 95 : zScore >= 1.645 ? 90 : Math.max(50, Math.min(95, 50 + zScore * 20));
 
       // 매출 계산
       const avgOrderValue = 50000;
@@ -243,26 +311,26 @@ export default function Home() {
           name: variantA.name,
           visitors: visitorsA,
           conversions: conversionsA,
-          conversionRate: (effectA * 100).toFixed(2),
+          conversionRate: effectA * 100,
           revenue: revenueA
         },
         variantB: {
           name: variantB.name,
           visitors: visitorsB,
           conversions: conversionsB,
-          conversionRate: (effectB * 100).toFixed(2),
+          conversionRate: effectB * 100,
           revenue: revenueB
         },
         winner: effectB > effectA ? 'B' : 'A',
-        improvement: Math.abs(((effectB - effectA) / effectA) * 100).toFixed(1),
-        confidence: confidence.toFixed(0),
-        revenueLift: revenueLift.toFixed(1),
+        improvement: Math.abs(((effectB - effectA) / effectA) * 100),
+        confidence: confidence,
+        revenueLift: revenueLift,
         recommendationData: recommendationData
       });
 
       setIsRunning(false);
     }, 2000);
-  };
+  }, [selectedTest, targetAudience, trafficSplit, currentVisitors, useSeed, seed]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -287,10 +355,11 @@ export default function Home() {
               </h2>
 
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="test-select" className="block text-sm font-medium text-gray-700 mb-2">
                   테스트할 UI 요소
                 </label>
                 <select
+                  id="test-select"
                   value={selectedTest}
                   onChange={(e) => setSelectedTest(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -303,10 +372,11 @@ export default function Home() {
               </div>
 
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="audience-select" className="block text-sm font-medium text-gray-700 mb-2">
                   타겟 고객층
                 </label>
                 <select
+                  id="audience-select"
                   value={targetAudience}
                   onChange={(e) => setTargetAudience(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -318,10 +388,11 @@ export default function Home() {
               </div>
 
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="split-range" className="block text-sm font-medium text-gray-700 mb-2">
                   트래픽 분할 (A안 비율): {trafficSplit}%
                 </label>
                 <input
+                  id="split-range"
                   type="range"
                   min="10"
                   max="90"
@@ -336,10 +407,11 @@ export default function Home() {
               </div>
 
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="visitors-input" className="block text-sm font-medium text-gray-700 mb-2">
                   일일 방문자 수
                 </label>
                 <input
+                  id="visitors-input"
                   type="number"
                   value={currentVisitors}
                   onChange={(e) => setCurrentVisitors(parseInt(e.target.value))}
@@ -348,6 +420,40 @@ export default function Home() {
                   max={100000}
                 />
               </div>
+
+              {/* 시드 옵션 */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="seed-toggle" className="text-sm font-medium text-gray-700">
+                    재현성 모드 (시드 고정)
+                  </label>
+                  <input
+                    id="seed-toggle"
+                    type="checkbox"
+                    checked={useSeed}
+                    onChange={(e) => setUseSeed(e.target.checked)}
+                    className="h-4 w-4"
+                  />
+                </div>
+                {useSeed && (
+                  <div className="mt-3">
+                    <label htmlFor="seed-input" className="block text-sm text-gray-700 mb-1">시드 값</label>
+                    <input
+                      id="seed-input"
+                      type="number"
+                      value={seed}
+                      onChange={(e) => setSeed(parseInt(e.target.value) || 0)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {error && (
+                <div className="text-sm text-red-600 mb-3" role="alert">
+                  {error}
+                </div>
+              )}
 
               <button
                 onClick={simulateABTest}
@@ -407,8 +513,8 @@ export default function Home() {
                       <div className="space-y-1 text-sm">
                         <div>방문자: {results.variantA.visitors.toLocaleString()}명</div>
                         <div>전환: {results.variantA.conversions}명</div>
-                        <div>전환율: <span className="font-bold text-lg">{results.variantA.conversionRate}%</span></div>
-                        <div>매출: {results.variantA.revenue.toLocaleString()}원</div>
+                        <div>전환율: <span className="font-bold text-lg">{results.variantA.conversionRate.toFixed(2)}%</span></div>
+                        <div>매출: {new Intl.NumberFormat('ko-KR').format(results.variantA.revenue)}원</div>
                       </div>
                     </div>
 
@@ -420,8 +526,8 @@ export default function Home() {
                       <div className="space-y-1 text-sm">
                         <div>방문자: {results.variantB.visitors.toLocaleString()}명</div>
                         <div>전환: {results.variantB.conversions}명</div>
-                        <div>전환율: <span className="font-bold text-lg">{results.variantB.conversionRate}%</span></div>
-                        <div>매출: {results.variantB.revenue.toLocaleString()}원</div>
+                        <div>전환율: <span className="font-bold text-lg">{results.variantB.conversionRate.toFixed(2)}%</span></div>
+                        <div>매출: {new Intl.NumberFormat('ko-KR').format(results.variantB.revenue)}원</div>
                       </div>
                     </div>
                   </div>
@@ -429,15 +535,15 @@ export default function Home() {
                   {/* 핵심 지표 */}
                   <div className="grid grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">+{results.improvement}%</div>
+                      <div className="text-2xl font-bold text-blue-600">+{results.improvement.toFixed(1)}%</div>
                       <div className="text-sm text-gray-600">개선율</div>
                     </div>
                     <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{results.confidence}%</div>
+                      <div className="text-2xl font-bold text-green-600">{results.confidence.toFixed(0)}%</div>
                       <div className="text-sm text-gray-600">신뢰도</div>
                     </div>
                     <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">{results.revenueLift > 0 ? '+' : ''}{results.revenueLift}%</div>
+                      <div className="text-2xl font-bold text-purple-600">{results.revenueLift > 0 ? '+' : ''}{results.revenueLift.toFixed(1)}%</div>
                       <div className="text-sm text-gray-600">매출 변화</div>
                     </div>
                   </div>
