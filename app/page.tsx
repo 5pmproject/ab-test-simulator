@@ -633,7 +633,7 @@ export default function Home() {
           </p>
           {/* 과학적 근거 섹션 */}
           <div className="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
-            <h2 className="text-lg font-semibold text-blue-900 mb-2">🔬 과학적 근거</h2>
+            <h2 className="text-lg font-semibold text-black mb-2">🔬 과학적 근거</h2>
             <ul className="list-disc pl-5 text-sm text-black space-y-1">
               <li>Kahneman & Tversky (1979) – Prospect Theory, 앵커링/손실회피</li>
               <li>Cialdini (2006) – 사회적 증거, 희소성 등 설득 심리</li>
@@ -649,7 +649,7 @@ export default function Home() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold mb-4 flex items-center text-black">
-                <Target className="w-5 h-5 mr-2 text-blue-600" />
+                <Target className="w-5 h-5 mr-2 text-black" />
                 테스트 설정
               </h2>
 
@@ -773,7 +773,7 @@ export default function Home() {
               </div>
 
               {error && (
-                <div className="text-sm text-red-600 mb-3" role="alert">
+                <div className="text-sm text-black mb-3" role="alert">
                   {error}
                 </div>
               )}
@@ -805,12 +805,12 @@ export default function Home() {
                 <h3 className="text-lg font-semibold mb-4 text-black">📋 테스트 개요</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-blue-50 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">🅰️ 변형안 A</h4>
+                    <h4 className="font-medium text-black mb-2">🅰️ 변형안 A</h4>
                     <div className="text-2xl mb-2">{testCategories[selectedCategory].tests[selectedTest].variants.A.visual}</div>
                     <p className="text-sm text-black">{testCategories[selectedCategory].tests[selectedTest].variants.A.description}</p>
                   </div>
                   <div className="p-4 bg-green-50 rounded-lg">
-                    <h4 className="font-medium text-green-900 mb-2">🅱️ 변형안 B</h4>
+                    <h4 className="font-medium text-black mb-2">🅱️ 변형안 B</h4>
                     <div className="text-2xl mb-2">{testCategories[selectedCategory].tests[selectedTest].variants.B.visual}</div>
                     <p className="text-sm text-black">{testCategories[selectedCategory].tests[selectedTest].variants.B.description}</p>
                   </div>
@@ -823,7 +823,7 @@ export default function Home() {
                 {/* 핵심 결과 */}
                 <div className="bg-white rounded-lg shadow-sm p-6">
                   <h3 className="text-lg font-semibold mb-4 flex items-center text-black">
-                    <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
+                    <TrendingUp className="w-5 h-5 mr-2 text-black" />
                     테스트 결과
                   </h3>
                   
@@ -858,15 +858,15 @@ export default function Home() {
                   {/* 핵심 지표 */}
                   <div className="grid grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">+{results.improvement.toFixed(1)}%</div>
+                      <div className="text-2xl font-bold text-black">+{results.improvement.toFixed(1)}%</div>
                       <div className="text-sm text-black">개선율</div>
                     </div>
                     <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{results.confidence.toFixed(0)}%</div>
+                      <div className="text-2xl font-bold text-black">{results.confidence.toFixed(0)}%</div>
                       <div className="text-sm text-black">신뢰도</div>
                     </div>
                     <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">{results.revenueLift > 0 ? '+' : ''}{results.revenueLift.toFixed(1)}%</div>
+                      <div className="text-2xl font-bold text-black">{results.revenueLift > 0 ? '+' : ''}{results.revenueLift.toFixed(1)}%</div>
                       <div className="text-sm text-black">매출 변화</div>
                     </div>
                   </div>
@@ -884,19 +884,19 @@ export default function Home() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
                       <div className="text-sm text-black">일일 매출 변화</div>
-                      <div className="text-xl font-bold text-blue-700">
+                      <div className="text-xl font-bold text-black">
                         {new Intl.NumberFormat('ko-KR').format(results.variantB.revenue - results.variantA.revenue)}원
                       </div>
                     </div>
                     <div className="p-4 rounded-lg bg-purple-50 border border-purple-200">
                       <div className="text-sm text-black">월간 추정 임팩트</div>
-                      <div className="text-xl font-bold text-purple-700">
+                      <div className="text-xl font-bold text-black">
                         {new Intl.NumberFormat('ko-KR').format((results.variantB.revenue - results.variantA.revenue) * 30)}원
                       </div>
                     </div>
                     <div className="p-4 rounded-lg bg-green-50 border border-green-200">
                       <div className="text-sm text-black">연간 추정 임팩트</div>
-                      <div className="text-xl font-bold text-green-700">
+                      <div className="text-xl font-bold text-black">
                         {new Intl.NumberFormat('ko-KR').format((results.variantB.revenue - results.variantA.revenue) * 365)}원
                       </div>
                     </div>
@@ -925,8 +925,8 @@ export default function Home() {
                   </div>
                   {results.recommendationData.researchSupport && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h4 className="font-medium text-blue-900 mb-2">📊 연구 근거</h4>
-                      <div className="text-sm text-blue-800">
+                      <h4 className="font-medium text-black mb-2">📊 연구 근거</h4>
+                      <div className="text-sm text-black">
                         {results.recommendationData.researchSupport}
                       </div>
                     </div>
