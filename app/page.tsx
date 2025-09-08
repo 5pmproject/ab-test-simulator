@@ -337,10 +337,10 @@ export default function Home() {
       <div className="max-w-6xl mx-auto">
         {/* 헤더 */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-black mb-2">
             UI/UX A/B 테스트 시뮬레이터
           </h1>
-          <p className="text-gray-600">
+          <p className="text-black">
             실제 A/B 테스트 전에 UI 변경사항의 효과를 미리 예측해보세요
           </p>
         </div>
@@ -355,7 +355,7 @@ export default function Home() {
               </h2>
 
               <div className="mb-6">
-                <label htmlFor="test-select" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="test-select" className="block text-sm font-medium text-black mb-2">
                   테스트할 UI 요소
                 </label>
                 <select
@@ -372,7 +372,7 @@ export default function Home() {
               </div>
 
               <div className="mb-6">
-                <label htmlFor="audience-select" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="audience-select" className="block text-sm font-medium text-black mb-2">
                   타겟 고객층
                 </label>
                 <select
@@ -388,7 +388,7 @@ export default function Home() {
               </div>
 
               <div className="mb-6">
-                <label htmlFor="split-range" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="split-range" className="block text-sm font-medium text-black mb-2">
                   트래픽 분할 (A안 비율): {trafficSplit}%
                 </label>
                 <input
@@ -400,14 +400,14 @@ export default function Home() {
                   onChange={(e) => setTrafficSplit(parseInt(e.target.value))}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <div className="flex justify-between text-xs text-black mt-1">
                   <span>A안: {trafficSplit}%</span>
                   <span>B안: {100 - trafficSplit}%</span>
                 </div>
               </div>
 
               <div className="mb-6">
-                <label htmlFor="visitors-input" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="visitors-input" className="block text-sm font-medium text-black mb-2">
                   일일 방문자 수
                 </label>
                 <input
@@ -424,7 +424,7 @@ export default function Home() {
               {/* 시드 옵션 */}
               <div className="mb-6">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="seed-toggle" className="text-sm font-medium text-gray-700">
+                  <label htmlFor="seed-toggle" className="text-sm font-medium text-black">
                     재현성 모드 (시드 고정)
                   </label>
                   <input
@@ -437,7 +437,7 @@ export default function Home() {
                 </div>
                 {useSeed && (
                   <div className="mt-3">
-                    <label htmlFor="seed-input" className="block text-sm text-gray-700 mb-1">시드 값</label>
+                    <label htmlFor="seed-input" className="block text-sm text-black mb-1">시드 값</label>
                     <input
                       id="seed-input"
                       type="number"
@@ -484,12 +484,12 @@ export default function Home() {
                   <div className="p-4 bg-blue-50 rounded-lg">
                     <h4 className="font-medium text-blue-900 mb-2">🅰️ 변형안 A</h4>
                     <div className="text-2xl mb-2">{abTestScenarios[selectedTest as keyof typeof abTestScenarios].variants.A.visual}</div>
-                    <p className="text-sm text-gray-600">{abTestScenarios[selectedTest as keyof typeof abTestScenarios].variants.A.description}</p>
+                    <p className="text-sm text-black">{abTestScenarios[selectedTest as keyof typeof abTestScenarios].variants.A.description}</p>
                   </div>
                   <div className="p-4 bg-green-50 rounded-lg">
                     <h4 className="font-medium text-green-900 mb-2">🅱️ 변형안 B</h4>
                     <div className="text-2xl mb-2">{abTestScenarios[selectedTest as keyof typeof abTestScenarios].variants.B.visual}</div>
-                    <p className="text-sm text-gray-600">{abTestScenarios[selectedTest as keyof typeof abTestScenarios].variants.B.description}</p>
+                    <p className="text-sm text-black">{abTestScenarios[selectedTest as keyof typeof abTestScenarios].variants.B.description}</p>
                   </div>
                 </div>
               </div>
@@ -536,15 +536,15 @@ export default function Home() {
                   <div className="grid grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-gray-50 rounded-lg">
                       <div className="text-2xl font-bold text-blue-600">+{results.improvement.toFixed(1)}%</div>
-                      <div className="text-sm text-gray-600">개선율</div>
+                      <div className="text-sm text-black">개선율</div>
                     </div>
                     <div className="text-center p-4 bg-gray-50 rounded-lg">
                       <div className="text-2xl font-bold text-green-600">{results.confidence.toFixed(0)}%</div>
-                      <div className="text-sm text-gray-600">신뢰도</div>
+                      <div className="text-sm text-black">신뢰도</div>
                     </div>
                     <div className="text-center p-4 bg-gray-50 rounded-lg">
                       <div className="text-2xl font-bold text-purple-600">{results.revenueLift > 0 ? '+' : ''}{results.revenueLift.toFixed(1)}%</div>
-                      <div className="text-sm text-gray-600">매출 변화</div>
+                      <div className="text-sm text-black">매출 변화</div>
                     </div>
                   </div>
                 </div>
@@ -553,7 +553,7 @@ export default function Home() {
                 <div className="bg-white rounded-lg shadow-sm p-6">
                   <h3 className="text-lg font-semibold mb-4">💡 추천사항</h3>
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                    <div className="whitespace-pre-line text-gray-800">
+                    <div className="whitespace-pre-line text-black">
                       {results.recommendationData.recommendation}
                     </div>
                   </div>
@@ -569,8 +569,8 @@ export default function Home() {
               </div>
             ) : (
               <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-500">테스트를 실행하면 결과가 여기에 표시됩니다</p>
+                <BarChart3 className="w-16 h-16 mx-auto mb-4 text-black" />
+                <p className="text-black">테스트를 실행하면 결과가 여기에 표시됩니다</p>
               </div>
             )}
           </div>
