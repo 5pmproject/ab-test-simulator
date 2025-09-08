@@ -11,10 +11,25 @@ type Variant = {
   appeal_type: 'convenience' | 'price' | 'urgency' | 'speed';
 };
 
-type Scenario = {
+type TestMeta = {
+  impact_level: 'low' | 'medium' | 'high';
+  difficulty: 'low' | 'medium' | 'high';
+  sample_size_needed: number;
+};
+
+type TestDefinition = {
+  key: string;
   name: string;
   description: string;
+  meta: TestMeta;
   variants: { A: Variant; B: Variant };
+};
+
+type TestCategory = {
+  key: string;
+  name: string;
+  description: string;
+  tests: Record<string, TestDefinition>;
 };
 
 type Segment = {
@@ -24,6 +39,19 @@ type Segment = {
   urgency_response: number;
   speed_preference: number;
   research_basis: string;
+  // 확장된 심리적 특성 (총 17개 특성에 포함되도록 추가)
+  trust_sensitivity: number;
+  social_proof_response: number;
+  anchoring_susceptibility: number;
+  loss_aversion: number;
+  brand_loyalty: number;
+  novelty_seeking: number;
+  risk_aversion: number;
+  cognitive_load_tolerance: number;
+  info_density_preference: number;
+  security_concern: number;
+  discount_frugality_index: number;
+  visual_hierarchy_sensitivity: number;
 };
 
 type VariantResult = {
@@ -49,117 +77,338 @@ type SimulationResult = {
   recommendationData: RecommendationData;
 };
 
-// 사전 정의된 A/B 테스트 시나리오들 (모듈 스코프로 이동)
-const abTestScenarios: Record<string, Scenario> = {
-    homepage_primary_message: {
-      name: "홈화면 메인 메시지",
-      description: "홈화면 상단에 어떤 메시지를 강조할지",
-      variants: {
-        A: {
-          name: "빠른배송 강조",
-          description: "오늘 주문 시 내일 도착",
-          visual: "🚚 오늘 주문 시 내일 도착",
-          appeal_type: "convenience"
+// Step 1: 테스트 카테고리 체계화 (5개 메인 카테고리, 각 3-4개 테스트)
+const testCategories: Record<string, TestCategory> = {
+  navigation_ia: {
+    key: 'navigation_ia',
+    name: '🧭 내비게이션 & 정보구조',
+    description: '탐색 용이성과 정보 구조 최적화 실험',
+    tests: {
+      top_nav_structure: {
+        key: 'top_nav_structure',
+        name: '상단 내비게이션 구조',
+        description: '간결형 vs 메가메뉴',
+        meta: { impact_level: 'medium', difficulty: 'medium', sample_size_needed: 5000 },
+        variants: {
+          A: { name: '간결형 5항목', description: '핵심 5개 카테고리만 노출', visual: '🧭 핵심 5개', appeal_type: 'convenience' },
+          B: { name: '메가메뉴', description: '하위 카테고리 풀노출', visual: '🧭 메가메뉴', appeal_type: 'speed' },
         },
-        B: {
-          name: "할인 강조", 
-          description: "최대 50% 할인 중",
-          visual: "🔥 최대 50% 할인 중",
-          appeal_type: "price"
-        }
-      }
+      },
+      search_placement: {
+        key: 'search_placement',
+        name: '검색 위치',
+        description: '상단바 vs 하단 고정(모바일)',
+        meta: { impact_level: 'high', difficulty: 'low', sample_size_needed: 3000 },
+        variants: {
+          A: { name: '상단 검색', description: '상단 바에 검색 배치', visual: '🔍 Top', appeal_type: 'speed' },
+          B: { name: '하단 고정', description: '모바일 하단 고정 검색', visual: '🔍 Bottom', appeal_type: 'convenience' },
+        },
+      },
+      breadcrumb_visibility: {
+        key: 'breadcrumb_visibility',
+        name: '브레드크럼 표시',
+        description: '표시 vs 미표시',
+        meta: { impact_level: 'low', difficulty: 'low', sample_size_needed: 4000 },
+        variants: {
+          A: { name: '표시', description: '브레드크럼 노출', visual: '🧱 표시', appeal_type: 'convenience' },
+          B: { name: '미표시', description: '브레드크럼 숨김', visual: '🧱 숨김', appeal_type: 'speed' },
+        },
+      },
     },
-    product_card_badge: {
-      name: "상품카드 배지",
-      description: "상품 리스트에서 어떤 정보를 배지로 강조할지",
-      variants: {
-        A: {
-          name: "무료배송 배지",
-          description: "무료배송",
-          visual: "📦 무료배송",
-          appeal_type: "convenience"
+  },
+  conversion_psych: {
+    key: 'conversion_psych',
+    name: '💰 전환 심리학',
+    description: '사회적 증거, 희소성, 앵커링 등 설득 요인',
+    tests: {
+      social_proof_badge: {
+        key: 'social_proof_badge',
+        name: '사회적 증거 배지',
+        description: '리뷰/구매 수 표기',
+        meta: { impact_level: 'high', difficulty: 'low', sample_size_needed: 2500 },
+        variants: {
+          A: { name: '리뷰수 표시', description: '리뷰 1.2k개', visual: '⭐ 1.2k 리뷰', appeal_type: 'urgency' },
+          B: { name: '구매수 표시', description: '최근 24시간 500개 구매', visual: '🛒 500 구매/24h', appeal_type: 'urgency' },
         },
-        B: {
-          name: "할인율 배지",
-          description: "30% 할인",
-          visual: "💰 30% OFF",
-          appeal_type: "price"
-        }
-      }
+      },
+      scarcity_timer: {
+        key: 'scarcity_timer',
+        name: '희소성 타이머',
+        description: '한정 수량/시간 타이머',
+        meta: { impact_level: 'medium', difficulty: 'medium', sample_size_needed: 3500 },
+        variants: {
+          A: { name: '한정 수량', description: '재고 7개 남음', visual: '⏳ 7 left', appeal_type: 'urgency' },
+          B: { name: '한정 시간', description: '2시간 내 종료', visual: '⏳ 2h left', appeal_type: 'urgency' },
+        },
+      },
+      price_anchor_display: {
+        key: 'price_anchor_display',
+        name: '가격 앵커 노출',
+        description: '정가 대비 할인가 표기',
+        meta: { impact_level: 'medium', difficulty: 'low', sample_size_needed: 3000 },
+        variants: {
+          A: { name: '정가 취소선', description: '정가 89,000원', visual: ' ~89,000~ ', appeal_type: 'price' },
+          B: { name: '할인가 강조', description: '지금 59,000원', visual: '59,000', appeal_type: 'price' },
+        },
+      },
     },
-    call_to_action: {
-      name: "구매 버튼 메시지",
-      description: "장바구니/구매 버튼의 텍스트",
-      variants: {
-        A: {
-          name: "긴급성 강조",
-          description: "지금 주문하기",
-          visual: "⚡ 지금 주문하기",
-          appeal_type: "urgency"
+  },
+  trust_security: {
+    key: 'trust_security',
+    name: '🛡️ 신뢰성 & 보안',
+    description: '결제 신뢰, 환불 정책, 보안 신호',
+    tests: {
+      trust_badges_checkout: {
+        key: 'trust_badges_checkout',
+        name: '결제 신뢰 배지',
+        description: '결제 단계 보안 배지',
+        meta: { impact_level: 'medium', difficulty: 'low', sample_size_needed: 4000 },
+        variants: {
+          A: { name: '신뢰 배지 표시', description: 'SSL/안전결제 로고', visual: '🔒 SSL', appeal_type: 'convenience' },
+          B: { name: '보안 문구 표시', description: '보안 안내 텍스트', visual: '🔒 안내', appeal_type: 'convenience' },
         },
-        B: {
-          name: "혜택 강조",
-          description: "할인가로 구매",
-          visual: "💸 할인가로 구매",
-          appeal_type: "price"
-        }
-      }
+      },
+      refund_policy_visibility: {
+        key: 'refund_policy_visibility',
+        name: '환불정책 노출',
+        description: '환불정책 강조 노출',
+        meta: { impact_level: 'low', difficulty: 'low', sample_size_needed: 3000 },
+        variants: {
+          A: { name: '헤더 링크', description: '상단 환불정책 링크', visual: '↗ 환불정책', appeal_type: 'convenience' },
+          B: { name: '체크아웃 노출', description: '결제 전 환불정책 노출', visual: '🧾 환불정책', appeal_type: 'convenience' },
+        },
+      },
+      https_lock_icon_emphasis: {
+        key: 'https_lock_icon_emphasis',
+        name: 'HTTPS 자물쇠 강조',
+        description: '주소창/결제단 강조',
+        meta: { impact_level: 'low', difficulty: 'low', sample_size_needed: 2500 },
+        variants: {
+          A: { name: '주소창 근처', description: '자물쇠 아이콘 근접 표시', visual: '🔐 주소창', appeal_type: 'convenience' },
+          B: { name: '결제 버튼 근처', description: '결제 CTA 근접 표시', visual: '🔐 결제', appeal_type: 'convenience' },
+        },
+      },
     },
-    shipping_info: {
-      name: "배송 정보 표시",
-      description: "상품 상세페이지 배송 안내",
-      variants: {
-        A: {
-          name: "속도 중심",
-          description: "빠른 배송 강조",
-          visual: "🚀 당일/익일 배송 가능",
-          appeal_type: "speed"
+  },
+  mobile_optimization: {
+    key: 'mobile_optimization',
+    name: '📱 모바일 최적화',
+    description: '모바일 사용성 및 속도 개선',
+    tests: {
+      bottom_nav_bar: {
+        key: 'bottom_nav_bar',
+        name: '하단 내비게이션 바',
+        description: '하단 고정 바 도입',
+        meta: { impact_level: 'high', difficulty: 'medium', sample_size_needed: 4500 },
+        variants: {
+          A: { name: '미도입', description: '상단 탭 유지', visual: '⬆️ 상단', appeal_type: 'speed' },
+          B: { name: '도입', description: '하단 바 도입', visual: '⬇️ 하단', appeal_type: 'convenience' },
         },
-        B: {
-          name: "가격 중심", 
-          description: "무료 배송 조건",
-          visual: "🆓 3만원 이상 무료배송",
-          appeal_type: "price"
-        }
-      }
-    }
-  };
+      },
+      thumb_zone_cta: {
+        key: 'thumb_zone_cta',
+        name: '엄지영역 CTA',
+        description: '하단 엄지영역 CTA 배치',
+        meta: { impact_level: 'high', difficulty: 'low', sample_size_needed: 3000 },
+        variants: {
+          A: { name: '기존 위치', description: '상단/중단 CTA', visual: '👆 상단', appeal_type: 'speed' },
+          B: { name: '엄지영역', description: '하단 고정 CTA', visual: '👍 하단', appeal_type: 'convenience' },
+        },
+      },
+      image_lazy_loading: {
+        key: 'image_lazy_loading',
+        name: '이미지 지연 로딩',
+        description: '레이지 로딩 도입',
+        meta: { impact_level: 'medium', difficulty: 'low', sample_size_needed: 3500 },
+        variants: {
+          A: { name: '미적용', description: '즉시 로딩', visual: '🖼️ 즉시', appeal_type: 'speed' },
+          B: { name: '적용', description: '지연 로딩', visual: '🖼️ 지연', appeal_type: 'speed' },
+        },
+      },
+    },
+  },
+  visual_hierarchy: {
+    key: 'visual_hierarchy',
+    name: '👁️ 시각적 계층구조',
+    description: '명확한 정보 우선순위와 CTA 강조',
+    tests: {
+      primary_cta_color: {
+        key: 'primary_cta_color',
+        name: '주요 CTA 색상',
+        description: '파랑 vs 초록',
+        meta: { impact_level: 'medium', difficulty: 'low', sample_size_needed: 3000 },
+        variants: {
+          A: { name: '블루', description: '파란색 CTA', visual: '🔵 CTA', appeal_type: 'urgency' },
+          B: { name: '그린', description: '초록색 CTA', visual: '🟢 CTA', appeal_type: 'urgency' },
+        },
+      },
+      hero_copy_weight: {
+        key: 'hero_copy_weight',
+        name: '히어로 카피 강조',
+        description: '볼드 vs 레귤러',
+        meta: { impact_level: 'low', difficulty: 'low', sample_size_needed: 2500 },
+        variants: {
+          A: { name: '볼드', description: '굵게 강조', visual: '🅱️ Bold', appeal_type: 'urgency' },
+          B: { name: '레귤러', description: '기본 굵기', visual: '🔤 Regular', appeal_type: 'convenience' },
+        },
+      },
+      card_shadow_depth: {
+        key: 'card_shadow_depth',
+        name: '카드 그림자 깊이',
+        description: '얕은 vs 깊은',
+        meta: { impact_level: 'low', difficulty: 'low', sample_size_needed: 2500 },
+        variants: {
+          A: { name: '얕은', description: '가벼운 음영', visual: '🃏 Light', appeal_type: 'convenience' },
+          B: { name: '깊은', description: '강한 음영', visual: '🃏 Deep', appeal_type: 'convenience' },
+        },
+      },
+    },
+  },
+};
 
-// 고객 세그먼트별 특성 (모듈 스코프)
+// Step 2: 고객 세그먼트 정교화 (7개, 17개 특성 지표 포함)
 const customerSegments: Record<string, Segment> = {
-    value_seeker: {
-      name: "가성비 추구층 (20대-30대 초반)",
-      price_sensitivity: 0.45,
-      convenience_preference: 0.10,
-      urgency_response: 0.15,
-      speed_preference: 0.20,
-      research_basis: "한국소비자원 2024 이커머스 트렌드 (n=12,500)"
-    },
-    busy_professional: {
-      name: "바쁜 직장인 (30대-40대)",
-      price_sensitivity: 0.15,
-      convenience_preference: 0.40,
-      urgency_response: 0.25,
-      speed_preference: 0.35,
-      research_basis: "Google Consumer Insights (1M+ 세션)"
-    },
-    careful_shopper: {
-      name: "신중한 쇼핑족 (40대+)",
-      price_sensitivity: 0.25,
-      convenience_preference: 0.25,
-      urgency_response: 0.10,
-      speed_preference: 0.15,
-      research_basis: "Baymard Institute UX Research"
-    },
-    mixed: {
-      name: "전체 고객 (혼합)",
-      price_sensitivity: 0.28,
-      convenience_preference: 0.25,
-      urgency_response: 0.17,
-      speed_preference: 0.23,
-      research_basis: "복합 연구 결과 가중평균"
-    }
-  };
+  gen_z_mobile_native: {
+    name: 'Z세대 모바일 네이티브 (18-25세)',
+    price_sensitivity: 0.35,
+    convenience_preference: 0.45,
+    urgency_response: 0.40,
+    speed_preference: 0.50,
+    research_basis: 'Journal of Consumer Psychology / Mobile UX',
+    trust_sensitivity: 0.30,
+    social_proof_response: 0.60,
+    anchoring_susceptibility: 0.35,
+    loss_aversion: 0.30,
+    brand_loyalty: 0.35,
+    novelty_seeking: 0.65,
+    risk_aversion: 0.25,
+    cognitive_load_tolerance: 0.55,
+    info_density_preference: 0.45,
+    security_concern: 0.35,
+    discount_frugality_index: 0.40,
+    visual_hierarchy_sensitivity: 0.55,
+  },
+  millennial_professional: {
+    name: '밀레니얼 직장인 (26-35세)',
+    price_sensitivity: 0.30,
+    convenience_preference: 0.55,
+    urgency_response: 0.35,
+    speed_preference: 0.45,
+    research_basis: 'HBR / Google Consumer Insights',
+    trust_sensitivity: 0.45,
+    social_proof_response: 0.55,
+    anchoring_susceptibility: 0.40,
+    loss_aversion: 0.45,
+    brand_loyalty: 0.40,
+    novelty_seeking: 0.45,
+    risk_aversion: 0.40,
+    cognitive_load_tolerance: 0.50,
+    info_density_preference: 0.50,
+    security_concern: 0.45,
+    discount_frugality_index: 0.35,
+    visual_hierarchy_sensitivity: 0.55,
+  },
+  gen_x_family: {
+    name: 'X세대 가족층 (36-50세)',
+    price_sensitivity: 0.30,
+    convenience_preference: 0.45,
+    urgency_response: 0.25,
+    speed_preference: 0.35,
+    research_basis: 'Nielsen Norman Group',
+    trust_sensitivity: 0.55,
+    social_proof_response: 0.45,
+    anchoring_susceptibility: 0.45,
+    loss_aversion: 0.55,
+    brand_loyalty: 0.55,
+    novelty_seeking: 0.30,
+    risk_aversion: 0.55,
+    cognitive_load_tolerance: 0.40,
+    info_density_preference: 0.55,
+    security_concern: 0.55,
+    discount_frugality_index: 0.40,
+    visual_hierarchy_sensitivity: 0.50,
+  },
+  baby_boomer_cautious: {
+    name: '베이비붐 신중족 (51-65세)',
+    price_sensitivity: 0.30,
+    convenience_preference: 0.40,
+    urgency_response: 0.20,
+    speed_preference: 0.30,
+    research_basis: 'NNG / Baymard',
+    trust_sensitivity: 0.65,
+    social_proof_response: 0.40,
+    anchoring_susceptibility: 0.45,
+    loss_aversion: 0.65,
+    brand_loyalty: 0.60,
+    novelty_seeking: 0.25,
+    risk_aversion: 0.65,
+    cognitive_load_tolerance: 0.35,
+    info_density_preference: 0.50,
+    security_concern: 0.65,
+    discount_frugality_index: 0.35,
+    visual_hierarchy_sensitivity: 0.50,
+  },
+  premium_buyer: {
+    name: '프리미엄 구매층',
+    price_sensitivity: 0.15,
+    convenience_preference: 0.60,
+    urgency_response: 0.30,
+    speed_preference: 0.45,
+    research_basis: 'HBR Premium Market',
+    trust_sensitivity: 0.60,
+    social_proof_response: 0.45,
+    anchoring_susceptibility: 0.35,
+    loss_aversion: 0.40,
+    brand_loyalty: 0.70,
+    novelty_seeking: 0.50,
+    risk_aversion: 0.40,
+    cognitive_load_tolerance: 0.55,
+    info_density_preference: 0.45,
+    security_concern: 0.55,
+    discount_frugality_index: 0.20,
+    visual_hierarchy_sensitivity: 0.60,
+  },
+  value_seeker: {
+    name: '가성비 중심층',
+    price_sensitivity: 0.60,
+    convenience_preference: 0.35,
+    urgency_response: 0.30,
+    speed_preference: 0.35,
+    research_basis: '소비자 행동 연구 (가성비)',
+    trust_sensitivity: 0.40,
+    social_proof_response: 0.50,
+    anchoring_susceptibility: 0.50,
+    loss_aversion: 0.55,
+    brand_loyalty: 0.35,
+    novelty_seeking: 0.40,
+    risk_aversion: 0.50,
+    cognitive_load_tolerance: 0.45,
+    info_density_preference: 0.50,
+    security_concern: 0.45,
+    discount_frugality_index: 0.65,
+    visual_hierarchy_sensitivity: 0.50,
+  },
+  mixed: {
+    name: '전체 평균',
+    price_sensitivity: 0.35,
+    convenience_preference: 0.45,
+    urgency_response: 0.30,
+    speed_preference: 0.40,
+    research_basis: '복합 연구 결과 가중평균',
+    trust_sensitivity: 0.50,
+    social_proof_response: 0.50,
+    anchoring_susceptibility: 0.45,
+    loss_aversion: 0.50,
+    brand_loyalty: 0.50,
+    novelty_seeking: 0.45,
+    risk_aversion: 0.50,
+    cognitive_load_tolerance: 0.50,
+    info_density_preference: 0.50,
+    security_concern: 0.50,
+    discount_frugality_index: 0.45,
+    visual_hierarchy_sensitivity: 0.50,
+  },
+};
 
 const historicalTests = [
     {
@@ -223,6 +472,7 @@ const generateRecommendation = (
   };
 
 export default function Home() {
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedTest, setSelectedTest] = useState('');
   const [targetAudience, setTargetAudience] = useState('mixed');
   const [trafficSplit, setTrafficSplit] = useState(50);
@@ -235,8 +485,8 @@ export default function Home() {
 
   // A/B 테스트 시뮬레이션
   const simulateABTest = useCallback(() => {
-    if (!selectedTest) {
-      setError('테스트를 선택해주세요');
+    if (!selectedCategory || !selectedTest) {
+      setError('카테고리와 테스트를 모두 선택해주세요');
       return;
     }
     setError(null);
@@ -244,11 +494,12 @@ export default function Home() {
     setIsRunning(true);
 
     setTimeout(() => {
-      const scenario = abTestScenarios[selectedTest as keyof typeof abTestScenarios];
+      const category = testCategories[selectedCategory as keyof typeof testCategories];
+      const testDef = category?.tests[selectedTest as keyof typeof category.tests];
       const segment = customerSegments[targetAudience as keyof typeof customerSegments];
       
-      const variantA = scenario.variants.A;
-      const variantB = scenario.variants.B;
+      const variantA = testDef.variants.A;
+      const variantB = testDef.variants.B;
       
       // 시드 기반 PRNG (xorshift32)
       let prngState = seed >>> 0;
@@ -343,6 +594,17 @@ export default function Home() {
           <p className="text-black">
             실제 A/B 테스트 전에 UI 변경사항의 효과를 미리 예측해보세요
           </p>
+          {/* 과학적 근거 섹션 */}
+          <div className="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+            <h2 className="text-lg font-semibold text-blue-900 mb-2">🔬 과학적 근거</h2>
+            <ul className="list-disc pl-5 text-sm text-black space-y-1">
+              <li>Kahneman & Tversky (1979) – Prospect Theory, 앵커링/손실회피</li>
+              <li>Cialdini (2006) – 사회적 증거, 희소성 등 설득 심리</li>
+              <li>Nielsen Norman Group – 모바일/웹 UX 가이드라인</li>
+              <li>MIT Technology Review – 모바일 커머스 연구</li>
+              <li>Harvard Business Review – 소비자 행동/프리미엄 시장</li>
+            </ul>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -354,21 +616,45 @@ export default function Home() {
                 테스트 설정
               </h2>
 
+              {/* 계층적 선택: 카테고리 → 테스트 */}
+              <div className="mb-6">
+                <label htmlFor="category-select" className="block text-sm font-medium text-black mb-2">
+                  카테고리 선택
+                </label>
+                <select
+                  id="category-select"
+                  value={selectedCategory}
+                  onChange={(e) => { setSelectedCategory(e.target.value); setSelectedTest(''); }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">카테고리 선택...</option>
+                  {Object.entries(testCategories).map(([key, cat]) => (
+                    <option key={key} value={key}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+
               <div className="mb-6">
                 <label htmlFor="test-select" className="block text-sm font-medium text-black mb-2">
-                  테스트할 UI 요소
+                  세부 테스트 선택
                 </label>
                 <select
                   id="test-select"
                   value={selectedTest}
                   onChange={(e) => setSelectedTest(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={!selectedCategory}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                 >
                   <option value="">테스트 선택...</option>
-                  {Object.entries(abTestScenarios).map(([key, scenario]) => (
-                    <option key={key} value={key}>{scenario.name}</option>
+                  {selectedCategory && Object.entries(testCategories[selectedCategory].tests).map(([key, t]) => (
+                    <option key={key} value={key}>{t.name}</option>
                   ))}
                 </select>
+                {selectedCategory && selectedTest && (
+                  <div className="mt-2 text-xs text-black">
+                    {testCategories[selectedCategory].tests[selectedTest].description}
+                  </div>
+                )}
               </div>
 
               <div className="mb-6">
