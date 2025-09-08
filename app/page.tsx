@@ -80,6 +80,21 @@ type SimulationResult = {
 // 통계/샘플링 유틸리티
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
+// Error function approximation (Abramowitz and Stegun 7.1.26)
+const erfApprox = (x: number) => {
+  const sign = x < 0 ? -1 : 1;
+  const ax = Math.abs(x);
+  const p = 0.3275911;
+  const a1 = 0.254829592;
+  const a2 = -0.284496736;
+  const a3 = 1.421413741;
+  const a4 = -1.453152027;
+  const a5 = 1.061405429;
+  const t = 1 / (1 + p * ax);
+  const y = 1 - (((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t) * Math.exp(-ax * ax);
+  return sign * y;
+};
+
 const normalFromUniform = (u1: number, u2: number) => {
   // Box-Muller 변환 (표준정규)
   const r = Math.sqrt(-2.0 * Math.log(Math.max(u1, 1e-12)));
@@ -111,7 +126,7 @@ const welchTTestConfidence = (pA: number, pB: number, nA: number, nB: number) =>
   // df가 충분히 크면 정규 근사 사용
   const z = t; // 근사
   // 정규분포 양측 p-value 근사
-  const normalCdf = (x: number) => 0.5 * (1 + Math.erf(x / Math.SQRT2));
+  const normalCdf = (x: number) => 0.5 * (1 + erfApprox(x / Math.SQRT2));
   const pTwoTailed = 2 * (1 - normalCdf(z));
   const confidence = clamp((1 - pTwoTailed) * 100, 50, 99.9);
   return confidence;
