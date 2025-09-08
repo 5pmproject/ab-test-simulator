@@ -33,4 +33,20 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### GitHub Actions → Vercel 자동 배포 설정
+
+1) Vercel에서 프로젝트 생성 후 다음 3개 값을 확인합니다 (Settings → General):
+- VERCEL_ORG_ID
+- VERCEL_PROJECT_ID
+- VERCEL_TOKEN (Account → Tokens에서 생성)
+
+2) GitHub 저장소 Settings → Secrets and variables → Actions에 아래 Secrets를 등록합니다:
+- VERCEL_ORG_ID
+- VERCEL_PROJECT_ID
+- VERCEL_TOKEN
+
+3) 브랜치 전략:
+- Pull Request 또는 `main` 이외 브랜치에 push → Preview 배포
+- `main` 브랜치에 push → Production 배포
+
+본 리포지토리에는 `.github/workflows/vercel-deploy.yml` 워크플로우가 포함되어 있으며, 위 Secrets가 설정되면 자동으로 동작합니다.
